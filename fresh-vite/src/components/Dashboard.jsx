@@ -2,7 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaFileAlt, FaEnvelope, FaHistory, FaStar, FaChartLine, FaCog, FaUser, FaSignOutAlt } from 'react-icons/fa';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from "../contexts/AuthContext";
+
 
 const containerVariants = {
   hidden: { opacity: 0 },
