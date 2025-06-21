@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import LandingPage from '@/components/landing/LandingPage';
+import LandingPage from '@/components/landing/landingPage';
 import Login from '@/components/Auth/Login';
 import SignUp from '@/components/Auth/SignUp';
 import Dashboard from '@/components/Dashboard';

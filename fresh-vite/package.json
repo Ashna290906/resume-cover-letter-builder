@@ -1,12 +1,5 @@
 {
-  "name": "resume-cover-letter-builder",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "npx vite",
-    "build": "npx vite build",
-    "lint": "eslint .",
     "preview": "npx vite preview"
   },
   "dependencies": {
@@ -19,8 +12,6 @@
     "file-saver": "^2.0.5",
     "firebase": "^11.9.1",
     "framer-motion": "^10.16.16",
-    "html2canvas": "^1.4.1",
-    "jspdf": "^3.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.49.3",
