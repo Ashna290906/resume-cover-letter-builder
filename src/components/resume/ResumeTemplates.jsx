@@ -40,9 +40,12 @@ export const ModernTemplate = ({ data }) => (
 </h2>
 
       {data.education.map((edu, index) => (
-        <div key={index} className="mb-2">
+        <div key={index} className="mb-4">
           <h3 className="font-semibold">{edu.degree}</h3>
-          <p className="text-gray-600">{edu.school} | {edu.year}</p>
+          <p className="text-gray-600">
+            {edu.school} | {edu.year}
+            {edu.gpa && ` | GPA: ${edu.gpa}`}
+          </p>
         </div>
       ))}
     </section>
@@ -115,9 +118,16 @@ export const MinimalTemplate = ({ data }) => (
       <section>
         <h2 className="text-lg font-semibold text-gray-800 mb-3">Education</h2>
         {data.education.map((edu, index) => (
-          <div key={index} className="mb-2">
+          <div key={index} className="mb-3">
             <h3 className="font-medium">{edu.degree}</h3>
-            <p className="text-gray-600">{edu.school}, {edu.year}</p>
+            <p className="text-gray-600">
+              {edu.school}, {edu.year}
+              {edu.gpa && (
+                <span className="block text-gray-500 text-sm mt-1">
+                  GPA: {edu.gpa}
+                </span>
+              )}
+            </p>
           </div>
         ))}
       </section>

@@ -399,7 +399,7 @@ export default function ResumeBuilder() {
             </div>
             <div>
               <label className={labelClasses}>GPA </label>
-              <input type="text" {...register('gpa')} className={inputClasses} placeholder="3.8/4.0" />
+              <input type="text" {...register('gpa')} className={inputClasses} placeholder="8.0/10" />
             </div>
           </div>
         </>
@@ -473,9 +473,9 @@ export default function ResumeBuilder() {
   const TemplateComponent = templates[template];
 
   return (
-    <div className="min-h-screen bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-gray-900 py-6 sm:py-12 px-3 sm:px-4 lg:px-8 relative overflow-x-hidden">
       {/* Background Effects */}
-      <div className="absolute inset-0">
+      <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-30" />
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -489,14 +489,14 @@ export default function ResumeBuilder() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="max-w-7xl mx-auto relative z-10"
+        className="max-w-7xl mx-auto relative z-10 px-2 sm:px-4"
       >
         {/* Header Section */}
-        <motion.div variants={itemVariants} className="mb-8">
-          <h1 className="text-4xl font-bold text-white sm:text-5xl mb-4">
-            Build Your <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Professional Resume</span>
+        <motion.div variants={itemVariants} className="mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
+            Build Your <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Resume</span>
           </h1>
-          <p className="text-xl text-gray-300">
+          <p className="text-base sm:text-xl text-gray-300">
             Create a standout resume with our AI-powered builder
           </p>
         </motion.div>
@@ -525,27 +525,38 @@ export default function ResumeBuilder() {
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Editor Section */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Section Navigation */}
-            <motion.div variants={itemVariants} className="flex space-x-2 overflow-x-auto pb-2">
-              {sections.map((section) => (
-                <motion.button
-                  key={section.id}
-                  onClick={() => setActiveSection(section.id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 ${
-                    activeSection === section.id
-                      ? 'bg-blue-600 text-white shadow-lg'
-                      : 'bg-gray-800/50 text-gray-400 hover:bg-gray-800'
-                  }`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <section.icon className="h-4 w-4" />
-                  <span>{section.label}</span>
-                </motion.button>
-              ))}
+            <motion.div variants={itemVariants} className="relative">
+              <div className="flex space-x-2 overflow-x-auto pb-2 hide-scrollbar">
+                {sections.map((section) => (
+                  <motion.button
+                    key={section.id}
+                    onClick={() => setActiveSection(section.id)}
+                    className={`flex-shrink-0 flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm sm:text-base rounded-xl transition-all duration-200 ${
+                      activeSection === section.id
+                        ? 'bg-blue-600 text-white shadow-lg'
+                        : 'bg-gray-800/50 text-gray-400 hover:bg-gray-800'
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <section.icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="whitespace-nowrap">{section.label}</span>
+                  </motion.button>
+                ))}
+              </div>
+              <style jsx>{`
+                .hide-scrollbar {
+                  -ms-overflow-style: none;
+                  scrollbar-width: none;
+                }
+                .hide-scrollbar::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
             </motion.div>
 
             {/* Form */}
@@ -592,17 +603,19 @@ export default function ResumeBuilder() {
           {/* Preview Section */}
           <motion.div
             variants={itemVariants}
-            className="bg-gray-800/50 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden"
+            className="bg-gray-800/50 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden h-full flex flex-col"
           >
-            <div className="p-4 border-b border-white/10 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-white">Preview</h3>
-              <div className="flex items-center space-x-2 text-gray-400">
-                <FaDownload className="h-5 w-5" />
-                <span>Export</span>
+            <div className="p-3 sm:p-4 border-b border-white/10 flex justify-between items-center">
+              <h3 className="text-lg sm:text-xl font-bold text-white">Preview</h3>
+              <div className="flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base text-gray-300">
+                <FaDownload className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Export</span>
               </div>
             </div>
-            <div ref={componentRef} className="p-8 bg-white">
-              <TemplateComponent data={resumeData} />
+            <div className="flex-1 overflow-auto">
+              <div ref={componentRef} className="p-4 sm:p-6 md:p-8 bg-white transform scale-75 sm:scale-90 md:scale-100 origin-top">
+                <TemplateComponent data={resumeData} />
+              </div>
             </div>
           </motion.div>
         </div>
