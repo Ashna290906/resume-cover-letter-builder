@@ -1,48 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { FaRegLightbulb, FaMagic, FaRocket, FaRegClock, FaLinkedin, FaGithub, FaTwitter } from 'react-icons/fa';
-import { HiOutlineTemplate, HiOutlineDocumentText } from 'react-icons/hi';
-import { BsGoogle } from 'react-icons/bs';
+import { FaLinkedin, FaGithub, FaTwitter } from 'react-icons/fa';
 
-const features = [
-  {
-    icon: <FaMagic className="h-8 w-8 text-white" />,
-    title: 'AI-Powered Content Generation',
-    description: 'Leverage Google\'s Gemini AI to create compelling resumes and cover letters tailored to your industry.',
-    color: 'from-purple-500 to-indigo-600',
-    delay: 0.2
-  },
-  {
-    icon: <HiOutlineTemplate className="h-8 w-8 text-white" />,
-    title: 'Professional Templates',
-    description: 'Choose from a variety of ATS-friendly templates designed by HR professionals.',
-    color: 'from-blue-500 to-cyan-600',
-    delay: 0.4
-  },
-  {
-    icon: <FaRegClock className="h-8 w-8 text-white" />,
-    title: 'Real-time Preview',
-    description: 'See changes instantly as you edit, ensuring your document looks perfect before export.',
-    color: 'from-green-500 to-teal-600',
-    delay: 0.6
-  },
-  {
-    icon: <FaRocket className="h-8 w-8 text-white" />,
-    title: 'Quick Export',
-    description: 'Export your documents in multiple formats including PDF and Word, ready for submission.',
-    color: 'from-orange-500 to-pink-600',
-    delay: 0.8
-  }
-];
 
 function LandingPage() {
   return (
-    <div className="bg-gradient-to-br from-purple-900 to-blue-900">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-900 to-pink-900">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-600 opacity-30" />
+           <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-30" />
         </div>
         <div className="max-w-7xl mx-auto">
           <div className="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
@@ -54,14 +22,14 @@ function LandingPage() {
                 transition={{ duration: 0.8 }}
               >
                 <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
-                  <span className="block">Create Your Perfect</span>
+                  <span className="block">Create Your Future with</span>
                   <span className="block bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                    Resume & Cover Letter
+                    Confidence
                   </span>
                 </h1>
                 <p className="mt-3 text-base text-gray-300 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                  Craft professional resumes and cover letters in minutes with our AI-powered builder. 
-                  Stand out from the crowd with modern templates and expert suggestions.
+                  Build impressive resumes and cover letters in minutes with our intelligent, AI-powered tool. 
+                  Whether you're starting out or stepping up, make every application count.
                 </p>
                 <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
                   <motion.div
@@ -71,7 +39,7 @@ function LandingPage() {
                   >
                     <Link
                       to="/signup"
-                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 md:py-4 md:text-lg md:px-10"
+                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 md:py-4 md:text-lg md:px-10"
                     >
                       Get Started Free
                     </Link>
@@ -96,7 +64,8 @@ function LandingPage() {
         <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
           <motion.img
             className="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full"
-            src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2850&q=80"
+            src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=2850&q=80"
+
             alt="Person working on resume"
             initial={{ opacity: 0, scale: 1.1 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -105,88 +74,9 @@ function LandingPage() {
         </div>
       </div>
 
-      {/* Features Section */}
-      <div className="py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-2xl font-semibold tracking-wide text-purple-400 mb-4">Features</h2>
-            <p className="text-4xl font-bold text-white mb-4">
-              Everything you need to land your dream job
-            </p>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              Our AI-powered platform helps you create professional resumes and cover letters that get noticed.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                className="relative"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: feature.delay }}
-              >
-                <div className="relative group">
-                  <div className={`absolute inset-0 bg-gradient-to-r ${feature.color} opacity-10 rounded-2xl`} />
-                  <div className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <div className="flex items-center justify-center h-16 w-16 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white mx-auto mb-6">
-                      {feature.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-600">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* CTA Section */}
-      <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-90" />
-        <div className="relative max-w-2xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
-              <span className="block">Ready to boost your career?</span>
-              <span className="block">Start building your resume today.</span>
-            </h2>
-            <p className="mt-4 text-lg leading-6 text-gray-200">
-              Join thousands of professionals who have already landed their dream jobs using our platform.
-            </p>
-            <motion.div
-              className="mt-8"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Link
-                to="/signup"
-                className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-gray-900 bg-white hover:bg-gray-50 sm:w-auto"
-              >
-                Get Started Free
-              </Link>
-            </motion.div>
-          </motion.div>
-        </div>
-      </div>
-
       {/* Footer */}
-      <footer className="bg-gray-900">
-        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8">
+      <footer className="mt-auto bg-gray-900 pt-4 pb-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8">
           <div className="flex justify-center space-x-6 md:order-2">
             {[
               { icon: <FaTwitter className="h-6 w-6" />, href: '#', label: 'Twitter' },

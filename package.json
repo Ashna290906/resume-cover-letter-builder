@@ -16,6 +16,7 @@
     "@firebase/auth": "^1.10.7",
     "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-tooltip": "^1.2.7",
+    "docx": "^9.5.1",
     "file-saver": "^2.0.5",
     "firebase": "^11.9.1",
     "framer-motion": "^10.16.16",

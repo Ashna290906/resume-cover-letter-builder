@@ -4,7 +4,7 @@ import { ModernTemplate, MinimalTemplate } from './ResumeTemplates';
 import { generateResumeContent } from '../../config/gemini';
 import ExportOptions from './ExportOptions';
 import { motion } from 'framer-motion';
-import { FaUser, FaBriefcase, FaGraduationCap, FaTools, FaProjectDiagram, FaMagic, FaDownload } from 'react-icons/fa';
+import { FaUser, FaBriefcase, FaGraduationCap, FaTools, FaProjectDiagram, FaChevronDown } from 'react-icons/fa';
 
 const templates = {
   modern: ModernTemplate,
@@ -44,7 +44,7 @@ const FormCard = ({ children, title, icon: Icon }) => (
   </motion.div>
 );
 
-export default function ResumeBuilder() {
+function ResumeBuilder() {
   const [activeSection, setActiveSection] = useState('personalInfo');
   const [template, setTemplate] = useState('modern');
   const [resumeData, setResumeData] = useState({
@@ -52,26 +52,555 @@ export default function ResumeBuilder() {
     summary: '',
     workExperience: [],
     education: [],
-    skills: [],
+    skills: {
+      technical: [],
+      soft: [],
+      languages: [],
+      tools: []
+    },
     projects: [],
   });
+  const [editingExperience, setEditingExperience] = useState(null);
+  const [editingProject, setEditingProject] = useState(null);
+  const [editingEducation, setEditingEducation] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const componentRef = useRef();
   const { register, handleSubmit, reset } = useForm();
 
-  const sections = [
-    { id: 'personalInfo', label: 'Personal Info', icon: FaUser },
-    { id: 'workExperience', label: 'Experience', icon: FaBriefcase },
-    { id: 'education', label: 'Education', icon: FaGraduationCap },
-    { id: 'skills', label: 'Skills', icon: FaTools },
-    { id: 'projects', label: 'Projects', icon: FaProjectDiagram },
-  ];
+  // Define CSS classes
+  const labelClasses = 'block text-sm font-medium text-gray-300 mb-1';
+  const inputClasses = 'w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent';
 
-  const handleGenerateContent = async (section, data) => {
-    setIsGenerating(true);
+  const sections = {
+    personalInfo: {
+      id: 'personalInfo',
+      label: 'Personal Info',
+      icon: FaUser,
+      content: (
+        <div className="space-y-4">
+          <div>
+            <label className={labelClasses}>Full Name</label>
+            <input type="text" {...register('fullName')} className={inputClasses} />
+          </div>
+          <div>
+            <label className={labelClasses}>Email</label>
+            <input type="email" {...register('email')} className={inputClasses} />
+          </div>
+          <div>
+            <label className={labelClasses}>Phone Number</label>
+            <input type="tel" {...register('phone')} className={inputClasses} />
+          </div>
+          <div>
+            <label className={labelClasses}>Location</label>
+            <input type="text" {...register('location')} className={inputClasses} />
+          </div>
+          <div>
+            <label className={labelClasses}>LinkedIn Profile</label>
+            <input type="url" {...register('linkedin')} className={inputClasses} />
+          </div>
+        </div>
+      )
+    },
+    workExperience: {
+      id: 'workExperience',
+      label: 'Experience',
+      icon: FaBriefcase,
+      content: (
+        <div className="space-y-4">
+          {resumeData.workExperience.length > 0 && (
+            <div className="mb-6">
+              <h4 className="text-lg font-medium text-gray-200 mb-3">Your Experience</h4>
+              <div className="space-y-3">
+                {resumeData.workExperience.map((exp, index) => (
+                  <div key={index} className="bg-gray-700/30 p-4 rounded-lg border border-gray-600/30">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h5 className="font-medium text-white">{exp.position || 'Position'}</h5>
+                        <p className="text-sm text-gray-300">{exp.company || 'Company'}</p>
+                        <p className="text-xs text-gray-400">{exp.duration || 'Duration'}</p>
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingExperience(index);
+                            reset({
+                              position: exp.position,
+                              company: exp.company,
+                              duration: exp.duration,
+                              achievements: exp.achievements?.join('\n') || ''
+                            });
+                          }}
+                          className="text-blue-400 hover:text-blue-300"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setResumeData(prev => ({
+                              ...prev,
+                              workExperience: prev.workExperience.filter((_, i) => i !== index)
+                            }));
+                          }}
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="border-t border-gray-700 pt-4">
+            <h4 className="text-lg font-medium text-gray-200 mb-4">
+              {editingExperience !== null ? 'Edit Experience' : 'Add New Experience'}
+            </h4>
+            <div className="space-y-4">
+              <div>
+                <label className={labelClasses}>Position</label>
+                <input type="text" {...register('position')} className={inputClasses} placeholder="Software Engineer" />
+              </div>
+              <div>
+                <label className={labelClasses}>Company</label>
+                <input type="text" {...register('company')} className={inputClasses} placeholder="Tech Company Inc." />
+              </div>
+              <div>
+                <label className={labelClasses}>Duration</label>
+                <input type="text" {...register('duration')} className={inputClasses} placeholder="Jan 2020 - Present" />
+              </div>
+              <div>
+                <label className={labelClasses}>Achievements & Responsibilities</label>
+                <textarea 
+                  {...register('achievements')} 
+                  rows={3} 
+                  className={inputClasses} 
+                  placeholder="• Achievement 1\n• Responsibility 2\n• Result 3" 
+                />
+                <p className="mt-1 text-xs text-gray-400">Enter each item on a new line, starting with •</p>
+              </div>
+              <div className="flex items-center space-x-2 bg-blue-500/10 p-4 rounded-xl border border-blue-500/20">
+                <input 
+                  type="checkbox" 
+                  {...register('useAI')} 
+                  className="h-5 w-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700" 
+                />
+                <div className="flex items-center">
+                  <FaMagic className="text-blue-400 mr-2" />
+                  <span className="text-sm text-gray-300">Use AI to generate professional description</span>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 pt-2">
+                {editingExperience !== null && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingExperience(null);
+                      reset();
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  {editingExperience !== null ? 'Update Experience' : 'Add Experience'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    education: {
+      id: 'education',
+      label: 'Education',
+      icon: FaGraduationCap,
+      content: (
+        <div className="space-y-4">
+          {resumeData.education.length > 0 && (
+            <div className="mb-6">
+              <h4 className="text-lg font-medium text-gray-200 mb-3">Your Education</h4>
+              <div className="space-y-3">
+                {resumeData.education.map((edu, index) => (
+                  <div key={index} className="bg-gray-700/30 p-4 rounded-lg border border-gray-600/30">
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h5 className="font-medium text-white">{edu.degree || 'Degree'}</h5>
+                          <p className="text-sm text-gray-300">{edu.school || 'School'}</p>
+                          <p className="text-xs text-gray-400">{edu.year || 'Year'}</p>
+                          {edu.gpa && (
+                            <p className="text-xs text-gray-400">GPA: {edu.gpa}</p>
+                          )}
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingEducation(index);
+                              reset({
+                                degree: edu.degree,
+                                school: edu.school,
+                                year: edu.year,
+                                gpa: edu.gpa
+                              });
+                            }}
+                            className="text-blue-400 hover:text-blue-300"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setResumeData(prev => ({
+                                ...prev,
+                                education: prev.education.filter((_, i) => i !== index)
+                              }));
+                            }}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="border-t border-gray-700 pt-4">
+            <h4 className="text-lg font-medium text-gray-200 mb-4">Add Education</h4>
+            <div className="space-y-4">
+              <div>
+                <label className={labelClasses}>Degree</label>
+                <input type="text" {...register('degree')} className={inputClasses} placeholder="Bachelor's, Master's, etc." />
+              </div>
+              <div>
+                <label className={labelClasses}>School</label>
+                <input type="text" {...register('school')} className={inputClasses} placeholder="University Name" />
+              </div>
+              <div>
+                <label className={labelClasses}>Year</label>
+                <input type="text" {...register('year')} className={inputClasses} placeholder="2020 - 2024" />
+              </div>
+              <div>
+                <label className={labelClasses}>GPA (Optional)</label>
+                <input type="number" step="0.01" {...register('gpa')} className={inputClasses} placeholder="3.5" />
+              </div>
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Add Education
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    skills: {
+      id: 'skills',
+      label: 'Skills',
+      icon: FaTools,
+      content: (
+        <div className="space-y-4">
+          {Object.entries(resumeData.skills).map(([category, skills]) => (
+            skills.length > 0 && (
+              <div key={category} className="mb-6">
+                <h4 className="text-lg font-medium text-gray-200 mb-3 capitalize">
+                  {category} Skills
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {skills.map((skill, index) => (
+                    <div key={index} className="bg-gray-700/30 p-4 rounded-lg border border-gray-600/30">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-white">{skill.name}</span>
+                        <div className="flex space-x-1">
+                          {[1, 2, 3, 4, 5].map((level) => (
+                            <div 
+                              key={level}
+                              className={`h-2 w-2 rounded-full ${level <= skill.level ? 'bg-blue-500' : 'bg-gray-600'}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setResumeData(prev => ({
+                            ...prev,
+                            skills: {
+                              ...prev.skills,
+                              [category]: prev.skills[category].filter((_, i) => i !== index)
+                            }
+                          }));
+                        }}
+                        className="mt-2 text-xs text-red-400 hover:text-red-300"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          ))}
+
+          <div className="border-t border-gray-700 pt-4">
+            <h4 className="text-lg font-medium text-gray-200 mb-4">Add New Skill</h4>
+            <div className="space-y-4">
+              <div>
+                <label className={labelClasses}>Skill Name</label>
+                <input 
+                  type="text" 
+                  {...register('skillName')} 
+                  className={inputClasses} 
+                  placeholder="e.g., React, Project Management, Spanish" 
+                />
+              </div>
+              <div>
+                <label className={labelClasses}>Category</label>
+                <select 
+                  {...register('category')} 
+                  className={inputClasses}
+                  defaultValue="technical"
+                >
+                  <option value="technical">Technical</option>
+                  <option value="soft">Soft Skills</option>
+                  <option value="languages">Languages</option>
+                  <option value="tools">Tools</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelClasses}>Proficiency Level</label>
+                <div className="mt-2">
+                  <div className="flex items-center space-x-4">
+                    <span className="text-xs text-gray-400">Beginner</span>
+                    <input 
+                      type="range" 
+                      min="1" 
+                      max="5" 
+                      defaultValue="3"
+                      {...register('proficiency')}
+                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <span className="text-xs text-gray-400">Expert</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>1</span>
+                    <span>2</span>
+                    <span>3</span>
+                    <span>4</span>
+                    <span>5</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 bg-blue-500/10 p-4 rounded-xl border border-blue-500/20">
+                <input 
+                  type="checkbox" 
+                  {...register('useAI')} 
+                  className="h-5 w-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700" 
+                />
+                <div className="flex items-center">
+                  <FaMagic className="text-blue-400 mr-2" />
+                  <span className="text-sm text-gray-300">Use AI to suggest relevant skills</span>
+                </div>
+              </div>
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Add Skill
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    projects: {
+      id: 'projects',
+      label: 'Projects',
+      icon: FaProjectDiagram,
+      content: (
+        <div className="space-y-4">
+          {resumeData.projects.length > 0 && (
+            <div className="mb-6">
+              <h4 className="text-lg font-medium text-gray-200 mb-3">Your Projects</h4>
+              <div className="space-y-3">
+                {resumeData.projects.map((project, index) => (
+                  <div key={index} className="bg-gray-700/30 p-4 rounded-lg border border-gray-600/30">
+                    <div className="flex flex-col space-y-2">
+                      <h5 className="font-medium text-white">{project.name || 'Project Name'}</h5>
+                      <div className="text-sm text-gray-300">
+                        {project.technologies?.split(',').map((tech, i) => (
+                          <span key={i} className="mr-2">
+                            <span className="bg-blue-500/20 px-2 py-1 rounded-full text-blue-400 text-xs">
+                              {tech.trim()}
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="text-gray-400">
+                        {project.description?.split('\n').map((line, i) => (
+                          <p key={i} className="mb-1">{line}</p>
+                        ))}
+                      </div>
+                      <div className="flex justify-end space-x-2 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingProject(index);
+                            reset({
+                              name: project.name,
+                              technologies: project.technologies,
+                              description: project.description
+                            });
+                          }}
+                          className="text-blue-400 hover:text-blue-300"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setResumeData(prev => ({
+                              ...prev,
+                              projects: prev.projects.filter((_, i) => i !== index)
+                            }));
+                          }}
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="border-t border-gray-700 pt-4">
+            <h4 className="text-lg font-medium text-gray-200 mb-4">
+              {editingProject !== null ? 'Edit Project' : 'Add New Project'}
+            </h4>
+            <div className="space-y-4">
+              <div>
+                <label className={labelClasses}>Project Name</label>
+                <input type="text" {...register('name')} className={inputClasses} placeholder="Project Management System" />
+              </div>
+              <div>
+                <label className={labelClasses}>Technologies Used</label>
+                <textarea {...register('technologies')} rows={2} className={inputClasses} 
+                  placeholder="React, Node.js, MongoDB, etc." />
+                <p className="mt-1 text-xs text-gray-400">Enter technologies separated by commas</p>
+              </div>
+              <div>
+                <label className={labelClasses}>Project Description</label>
+                <textarea {...register('description')} rows={4} className={inputClasses} 
+                  placeholder="• Project overview\n• Key features\n• Technologies used\n• Impact or results" />
+                <p className="mt-1 text-xs text-gray-400">Enter each point on a new line, starting with •</p>
+              </div>
+              <div className="flex items-center space-x-2 bg-blue-500/10 p-4 rounded-xl border border-blue-500/20">
+                <input type="checkbox" {...register('useAI')} 
+                  className="h-5 w-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700" />
+                <div className="flex items-center">
+                  <FaMagic className="text-blue-400 mr-2" />
+                  <span className="text-sm text-gray-300">Use AI to generate professional project description</span>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 pt-2">
+                {editingProject !== null && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingProject(null);
+                      reset();
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  {editingProject !== null ? 'Update Project' : 'Add Project'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    summary: {
+      id: 'summary',
+      label: 'Summary',
+      icon: FaChevronDown,
+      content: (
+        <div className="space-y-4">
+          {resumeData.summary && (
+            <div className="mb-6">
+              <h4 className="text-lg font-medium text-gray-200 mb-3">Current Summary</h4>
+              <div className="bg-gray-700/30 p-4 rounded-lg border border-gray-600/30">
+                <p className="text-white">{resumeData.summary}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="border-t border-gray-700 pt-4">
+            <h4 className="text-lg font-medium text-gray-200 mb-4">Generate Summary</h4>
+            <div className="space-y-4">
+              <div>
+                <label className={labelClasses}>Current Role</label>
+                <input type="text" {...register('role')} className={inputClasses} placeholder="Senior Software Engineer" />
+              </div>
+              <div>
+                <label className={labelClasses}>Key Expertise</label>
+                <textarea {...register('expertise')} rows={3} className={inputClasses} 
+                  placeholder="Enter your key areas of expertise" />
+              </div>
+              <div className="flex items-center space-x-2 bg-blue-500/10 p-4 rounded-xl border border-blue-500/20">
+                <input type="checkbox" {...register('useAI')} 
+                  className="h-5 w-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700" />
+                <div className="flex items-center">
+                  <FaMagic className="text-blue-400 mr-2" />
+                  <span className="text-sm text-gray-300">Generate professional summary based on your experience</span>
+                </div>
+              </div>
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Generate Summary
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+  };
+
+
+  const generateAIContent = async (section, data) => {
     try {
-      // Prepare data for AI generation based on section
-      let aiData;
+      let aiData = {};
       switch (section) {
         case 'workExperience':
           aiData = {
@@ -96,530 +625,109 @@ export default function ResumeBuilder() {
           aiData = {
             role: data.role,
             experience: data.experience,
-            expertise: data.expertise,
+            expertise: data.expertise
           };
           break;
         default:
-          aiData = data;
+          aiData = {};
       }
-
-      const generatedContent = await generateResumeContent(section, aiData);
-      
-      // Parse the generated content based on section type
-      let parsedContent;
-      switch (section) {
-        case 'workExperience':
-          parsedContent = {
-            position: data.position,
-            company: data.company,
-            duration: data.duration,
-            achievements: generatedContent.split('\n').filter(item => item.trim()),
-          };
-          setResumeData(prev => ({
-            ...prev,
-            workExperience: [...prev.workExperience, parsedContent],
-          }));
-          break;
-
-        case 'skills':
-          parsedContent = generatedContent.split(',').map(skill => skill.trim());
-          setResumeData(prev => ({
-            ...prev,
-            skills: [...prev.skills, ...parsedContent], // Combine with existing skills
-          }));
-          break;
-
-        case 'projects':
-          parsedContent = {
-            name: data.name,
-            description: generatedContent,
-          };
-          setResumeData(prev => ({
-            ...prev,
-            projects: [...prev.projects, parsedContent],
-          }));
-          break;
-
-        case 'summary':
-          setResumeData(prev => ({
-            ...prev,
-            summary: generatedContent,
-          }));
-          break;
-
-        default:
-          setResumeData(prev => ({
-            ...prev,
-            [section]: generatedContent,
-          }));
-      }
+      return aiData;
     } catch (error) {
-      console.error('Error generating content:', error);
-      const errorMessage = error.message || 'An error occurred while generating AI content';
-      alert(`AI Enhancement failed: ${errorMessage}`);
-    } finally {
-      setIsGenerating(false);
+      console.error('Error processing form data:', error);
+      throw error;
     }
   };
 
   const onSubmit = async (data) => {
-    switch (activeSection) {
-      case 'personalInfo':
-        // Ensure all fields are properly set, even if empty
-        const personalInfo = {
-          name: data.name || '',
-          email: data.email || '',
-          phone: data.phone || '',
-          location: data.location || '',
-        };
-        setResumeData(prev => ({
-          ...prev,
-          personalInfo: {
-            ...prev.personalInfo,
-            ...personalInfo
-          },
-        }));
-        // Show success message
-        alert('Personal information saved successfully!');
-        break;
-
-      case 'workExperience':
-        if (data.useAI) {
-          await handleGenerateContent('workExperience', data);
-        } else {
-          const newExperience = {
-            position: data.position,
-            company: data.company,
-            duration: data.duration,
-            achievements: data.achievements.split('\n').filter(item => item.trim()),
-          };
-          setResumeData(prev => ({
-            ...prev,
-            workExperience: [...prev.workExperience, newExperience],
-          }));
-        }
-        break;
-
-      case 'education':
-        const newEducation = {
-          degree: data.degree,
-          school: data.school,
-          year: data.year,
-          gpa: data.gpa,
-        };
-        setResumeData(prev => ({
-          ...prev,
-          education: [...prev.education, newEducation],
-        }));
-        break;
-
-      case 'skills':
-        if (data.useAI) {
-          await handleGenerateContent('skills', data);
-        } else {
-          const skillsList = data.skills.split(',').map(skill => skill.trim());
-          setResumeData(prev => ({
-            ...prev,
-            skills: [...prev.skills, ...skillsList],
-          }));
-        }
-        break;
-
-      case 'projects':
-        if (data.useAI) {
-          await handleGenerateContent('projects', data);
-        } else {
-          const newProject = {
-            name: data.name,
-            description: data.description,
-            technologies: data.technologies,
-          };
-          setResumeData(prev => ({
-            ...prev,
-            projects: [...prev.projects, newProject],
-          }));
-        }
-        break;
+    try {
+      const aiData = await generateAIContent(activeSection, data);
+      setResumeData({ ...resumeData, [activeSection]: aiData });
+    } catch (error) {
+      console.error('Error generating content:', error);
+      const errorMessage = error.message || 'An error occurred while generating AI content';
+      alert(`AI Enhancement failed: ${errorMessage}`);
     }
-    reset();
   };
 
-  const renderForm = () => {
-    const inputClasses = "mt-1 block w-full bg-gray-800/30 border-gray-700 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400";
-    const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
-    
-    const formContent = {
-      personalInfo: (
-        <>
-          <div className="space-y-4">
-            <div>
-              <label className={labelClasses}>Full Name</label>
-              <input type="text" {...register('name')} className={inputClasses} placeholder="John Doe" />
-            </div>
-            <div>
-              <label className={labelClasses}>Email</label>
-              <input type="email" {...register('email')} className={inputClasses} placeholder="john@example.com" />
-            </div>
-            <div>
-              <label className={labelClasses}>Phone</label>
-              <input type="tel" {...register('phone')} className={inputClasses} placeholder="+1 (555) 123-4567" />
-            </div>
-            <div>
-              <label className={labelClasses}>Location</label>
-              <input type="text" {...register('location')} className={inputClasses} placeholder="City, State" />
-            </div>
-          </div>
-        </>
-      ),
-      workExperience: (
-        <>
-          <div className="space-y-4">
-            <div>
-              <label className={labelClasses}>Position</label>
-              <input type="text" {...register('position')} className={inputClasses} placeholder="Software Engineer" />
-            </div>
-            <div>
-              <label className={labelClasses}>Company</label>
-              <input type="text" {...register('company')} className={inputClasses} placeholder="Tech Company Inc." />
-            </div>
-            <div>
-              <label className={labelClasses}>Duration</label>
-              <input type="text" {...register('duration')} className={inputClasses} placeholder="Jan 2020 - Present" />
-            </div>
-            <div>
-              <label className={labelClasses}>Achivements</label>
-              <textarea {...register('responsibilities')} rows={3} className={inputClasses} 
-                placeholder="Enter key responsibilities for AI to enhance..." />
-            </div>
-            <div className="flex items-center space-x-2 bg-blue-500/10 p-4 rounded-xl border border-blue-500/20">
-              <input type="checkbox" {...register('useAI')} 
-                className="h-5 w-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700" />
-              <div className="flex items-center">
-                <FaMagic className="text-blue-400 mr-2" />
-                <span className="text-sm text-gray-300">Use AI to generate professional description</span>
-              </div>
-            </div>
-          </div>
-        </>
-      ),
-      skills: (
-        <>
-          <div className="space-y-4">
-            <div>
-              <label className={labelClasses}>Role/Position</label>
-              <input type="text" {...register('role')} className={inputClasses} placeholder="Software Engineer" />
-            </div>
-            <div>
-              <label className={labelClasses}>Focus Areas</label>
-              <textarea {...register('focusAreas')} rows={3} className={inputClasses} 
-                placeholder="Enter focus areas (e.g., frontend, backend, DevOps)" />
-            </div>
-            <div className="flex items-center space-x-2 bg-blue-500/10 p-4 rounded-xl border border-blue-500/20">
-              <input type="checkbox" {...register('useAI')} 
-                className="h-5 w-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700" />
-              <div className="flex items-center">
-                <FaMagic className="text-blue-400 mr-2" />
-                <span className="text-sm text-gray-300">Use AI to generate professional skills</span>
-              </div>
-            </div>
-          </div>
-        </>
-      ),
-      projects: (
-        <>
-          <div className="space-y-4">
-            <div>
-              <label className={labelClasses}>Project Name</label>
-              <input type="text" {...register('name')} className={inputClasses} placeholder="Project Management System" />
-            </div>
-            <div>
-              <label className={labelClasses}>Technologies Used</label>
-              <textarea {...register('technologies')} rows={3} className={inputClasses} 
-                placeholder="Enter technologies used (e.g., React, Node.js, MongoDB)" />
-            </div>
-            <div>
-              <label className={labelClasses}>Project Description</label>
-              <textarea {...register('description')} rows={4} className={inputClasses} 
-                placeholder="Enter project details for AI to enhance..." />
-            </div>
-            <div className="flex items-center space-x-2 bg-blue-500/10 p-4 rounded-xl border border-blue-500/20">
-              <input type="checkbox" {...register('useAI')} 
-                className="h-5 w-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700" />
-              <div className="flex items-center">
-                <FaMagic className="text-blue-400 mr-2" />
-                <span className="text-sm text-gray-300">Use AI to generate professional project description</span>
-              </div>
-            </div>
-          </div>
-        </>
-      ),
-      summary: (
-        <>
-          <div className="space-y-4">
-            <div>
-              <label className={labelClasses}>Current Role</label>
-              <input type="text" {...register('role')} className={inputClasses} placeholder="Senior Software Engineer" />
-            </div>
-            <div>
-              <label className={labelClasses}>Years of Experience</label>
-              <input type="number" {...register('experience')} className={inputClasses} placeholder="5" />
-            </div>
-            <div>
-              <label className={labelClasses}>Key Expertise</label>
-              <textarea {...register('expertise')} rows={3} className={inputClasses} 
-                placeholder="Enter your key areas of expertise" />
-            </div>
-            <div className="flex items-center space-x-2 bg-blue-500/10 p-4 rounded-xl border border-blue-500/20">
-              <input type="checkbox" {...register('useAI')} 
-                className="h-5 w-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700" />
-              <div className="flex items-center">
-                <FaMagic className="text-blue-400 mr-2" />
-                <span className="text-sm text-gray-300">Use AI to generate professional summary</span>
-              </div>
-            </div>
-          </div>
-        </>
-      ),
-      education: (
-        <>
-          <div className="space-y-4">
-            <div>
-              <label className={labelClasses}>Degree</label>
-              <input type="text" {...register('degree')} className={inputClasses} 
-                placeholder="Bachelor of Science in Computer Science" />
-            </div>
-            <div>
-              <label className={labelClasses}>School/University</label>
-              <input type="text" {...register('school')} className={inputClasses} 
-                placeholder="University Name" />
-            </div>
-            <div>
-              <label className={labelClasses}>Year</label>
-              <input type="text" {...register('year')} className={inputClasses} placeholder="2020 - 2024" />
-            </div>
-            <div>
-              <label className={labelClasses}>GPA </label>
-              <input type="text" {...register('gpa')} className={inputClasses} placeholder="8.0/10" />
-            </div>
-          </div>
-        </>
-      ),
-      technicalSkills: (
-        <>
-          <div className="space-y-4">
-            <div>
-              <label className={labelClasses}>Technical Skills</label>
-              <textarea {...register('skills')} rows={4} className={inputClasses} 
-                placeholder="JavaScript, React, Node.js, Python, etc." />
-            </div>
-            <div>
-              <label className={labelClasses}>Role (for AI generation)</label>
-              <input type="text" {...register('role')} className={inputClasses} placeholder="Full Stack Developer" />
-            </div>
-            <div>
-              <label className={labelClasses}>Focus Areas</label>
-              <input type="text" {...register('focusAreas')} className={inputClasses} 
-                placeholder="Web Development, Cloud Computing" />
-            </div>
-            <div className="flex items-center space-x-2 bg-blue-500/10 p-4 rounded-xl border border-blue-500/20">
-              <input type="checkbox" {...register('useAI')} 
-                className="h-5 w-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700" />
-              <div className="flex items-center">
-                <FaMagic className="text-blue-400 mr-2" />
-                <span className="text-sm text-gray-300">Use AI to generate relevant skills</span>
-              </div>
-            </div>
-          </div>
-        </>
-      ),
-      additionalProjects: (
-        <>
-          <div className="space-y-4">
-            <div>
-              <label className={labelClasses}>Project Name</label>
-              <input type="text" {...register('name')} className={inputClasses} placeholder="E-commerce Platform" />
-            </div>
-            <div>
-              <label className={labelClasses}>Description</label>
-              <textarea {...register('description')} rows={4} className={inputClasses} 
-                placeholder="Built a full-stack e-commerce platform with features like..." />
-            </div>
-            <div>
-              <label className={labelClasses}>Technologies Used</label>
-              <input type="text" {...register('technologies')} className={inputClasses} 
-                placeholder="React, Node.js, MongoDB" />
-            </div>
-            <div className="flex items-center space-x-2 bg-blue-500/10 p-4 rounded-xl border border-blue-500/20">
-              <input type="checkbox" {...register('useAI')} 
-                className="h-5 w-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700" />
-              <div className="flex items-center">
-                <FaMagic className="text-blue-400 mr-2" />
-                <span className="text-sm text-gray-300">Use AI to enhance project description</span>
-              </div>
-            </div>
-          </div>
-        </>
-      ),
-    };
-
-    const currentSection = sections.find(s => s.id === activeSection);
-    return (
-      <FormCard title={currentSection.label} icon={currentSection.icon}>
-        {formContent[activeSection]}
-      </FormCard>
-    );
-  };
-
-  const TemplateComponent = templates[template];
-
+  const TemplateComponent = templates[template] || templates.modern;
+  const currentSection = sections[activeSection];
+  
   return (
     <div className="min-h-screen bg-gray-900 py-6 sm:py-12 px-3 sm:px-4 lg:px-8 relative overflow-x-hidden">
       {/* Background Effects */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-30" />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 0.1, scale: 1 }}
-          transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-          className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-400 via-blue-500 to-transparent"
-        />
       </div>
 
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="max-w-7xl mx-auto relative z-10 px-2 sm:px-4"
-      >
-        {/* Header Section */}
-        <motion.div variants={itemVariants} className="mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
-            Build Your <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Resume</span>
-          </h1>
-          <p className="text-base sm:text-xl text-gray-300">
-            Create a standout resume with our AI-powered builder
-          </p>
-        </motion.div>
-
-        {/* Template Selection */}
-        <motion.div variants={itemVariants} className="mb-8">
-          <div className="bg-gray-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-            <h3 className="text-xl font-bold text-white mb-4">Choose Template Style</h3>
-            <div className="grid grid-cols-2 gap-4">
-              {Object.entries(templates).map(([key]) => (
-                <motion.button
-                  key={key}
-                  onClick={() => setTemplate(key)}
-                  className={`p-4 rounded-xl border-2 transition-all duration-200 ${
-                    template === key
-                      ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                      : 'border-gray-700 hover:border-blue-500/50 text-gray-400'
-                  }`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {key.charAt(0).toUpperCase() + key.slice(1)}
-                </motion.button>
-              ))}
+      <div className="relative">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold text-white">Resume Builder</h1>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setTemplate('modern')}
+                className={`px-4 py-2 rounded-lg ${
+                  template === 'modern' ? 'bg-blue-500 text-white' : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                Modern
+              </button>
+              <button
+                onClick={() => setTemplate('minimal')}
+                className={`px-4 py-2 rounded-lg ${
+                  template === 'minimal' ? 'bg-blue-500 text-white' : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                Minimal
+              </button>
             </div>
           </div>
-        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          {/* Editor Section */}
-          <div className="space-y-4 sm:space-y-6">
-            {/* Section Navigation */}
-            <motion.div variants={itemVariants} className="relative">
-              <div className="flex space-x-2 overflow-x-auto pb-2 hide-scrollbar">
-                {sections.map((section) => (
-                  <motion.button
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+              <div className="space-y-6">
+                {Object.values(sections).map(section => (
+                  <button
                     key={section.id}
                     onClick={() => setActiveSection(section.id)}
-                    className={`flex-shrink-0 flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm sm:text-base rounded-xl transition-all duration-200 ${
+                    className={`w-full flex items-center justify-between p-4 rounded-lg ${
                       activeSection === section.id
-                        ? 'bg-blue-600 text-white shadow-lg'
-                        : 'bg-gray-800/50 text-gray-400 hover:bg-gray-800'
+                        ? 'bg-blue-500/10 border border-blue-500/20'
+                        : 'bg-gray-800/50 hover:bg-gray-700/50'
                     }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                   >
-                    <section.icon className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="whitespace-nowrap">{section.label}</span>
-                  </motion.button>
+                    <div className="flex items-center space-x-3">
+                      <section.icon className="text-blue-400" />
+                      <span className="text-white">{section.label}</span>
+                    </div>
+                    {activeSection === section.id && (
+                      <FaChevronDown className="text-blue-400" />
+                    )}
+                  </button>
                 ))}
               </div>
-              <style jsx>{`
-                .hide-scrollbar {
-                  -ms-overflow-style: none;
-                  scrollbar-width: none;
-                }
-                .hide-scrollbar::-webkit-scrollbar {
-                  display: none;
-                }
-              `}</style>
-            </motion.div>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {renderForm()}
-
-              <motion.div variants={itemVariants} className="flex justify-between items-center">
-                <motion.button
-                  type="submit"
-                  className={`inline-flex items-center space-x-2 px-6 py-3 rounded-xl text-white font-medium transition-all duration-200 ${
-                    isGenerating
-                      ? 'bg-gray-700 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90'
-                  }`}
-                  disabled={isGenerating}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {isGenerating ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>Generating...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FaMagic className="h-5 w-5" />
-                      <span>Save Section</span>
-                    </>
-                  )}
-                </motion.button>
-
-                <ExportOptions 
-                  data={resumeData}
-                  componentRef={componentRef}
-                  type="resume"
-                />
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={containerVariants}
+                className="mt-8"
+              >
+                {currentSection && (
+                  <motion.div variants={itemVariants}>
+                    <FormCard title={currentSection.label} icon={currentSection.icon}>
+                      {currentSection.content}
+                    </FormCard>
+                  </motion.div>
+                )}
               </motion.div>
-            </form>
+            </div>
           </div>
-
-          {/* Preview Section */}
-          <motion.div
-            variants={itemVariants}
-            className="bg-gray-800/50 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden h-full flex flex-col"
-          >
-            <div className="p-3 sm:p-4 border-b border-white/10 flex justify-between items-center">
-              <h3 className="text-lg sm:text-xl font-bold text-white">Preview</h3>
-              <div className="flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base text-gray-300">
-                <FaDownload className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="hidden sm:inline">Export</span>
-              </div>
-            </div>
-            <div className="flex-1 overflow-auto">
-              <div ref={componentRef} className="p-4 sm:p-6 md:p-8 bg-white transform scale-75 sm:scale-90 md:scale-100 origin-top">
-                <TemplateComponent data={resumeData} />
-              </div>
-            </div>
-          </motion.div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
-}
+};
+
+export default ResumeBuilder;
+

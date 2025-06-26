@@ -51,17 +51,30 @@ export const ModernTemplate = ({ data }) => (
     </section>
 
     <section className="mb-6">
-    <h2 className="text-xl font-semibold text-indigo-600 pb-1 mb-3 border-b-2 border-indigo-600 w-fit">
-  Skills
-</h2>
-
-      <div className="flex flex-wrap gap-2">
-        {data.skills.map((skill, index) => (
-          <span key={index} className="bg-gray-100 px-3 py-1 rounded-full text-gray-700">
-            {skill}
-          </span>
-        ))}
-      </div>
+      <h2 className="text-xl font-semibold text-indigo-600 pb-1 mb-3 border-b-2 border-indigo-600 w-fit">
+        Skills
+      </h2>
+      {Object.entries(data.skills).map(([category, skills]) => (
+        skills.length > 0 && (
+          <div key={category} className="mb-6">
+            <h3 className="text-lg font-semibold text-indigo-600 mb-4">{category}</h3>
+            <div className="space-y-3">
+              {skills.map((skill, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <span className="text-gray-700 font-medium">{skill.name}</span>
+                  <div className="w-32">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div className="bg-indigo-500 h-2.5 rounded-full" 
+                           style={{ width: `${skill.level * 20}%` }}></div>
+                    </div>
+                  </div>
+                  <span className="text-sm text-gray-600">{skill.level * 20}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      ))}
     </section>
 
     {data.projects && (
@@ -134,11 +147,27 @@ export const MinimalTemplate = ({ data }) => (
 
       <section>
         <h2 className="text-lg font-semibold text-gray-800 mb-3">Skills</h2>
-        <div className="flex flex-wrap gap-2">
-          {data.skills.map((skill, index) => (
-            <span key={index} className="text-gray-700">
-              {skill}{index !== data.skills.length - 1 ? " • " : ""}
-            </span>
+        <div className="space-y-4">
+          {Object.entries(data.skills).map(([category, skills]) => (
+            skills.length > 0 && (
+              <div key={category} className="space-y-2">
+                <h3 className="text-sm font-medium text-gray-700 uppercase tracking-wider">{category}</h3>
+                <div className="space-y-2">
+                  {skills.map((skill, index) => (
+                    <div key={index} className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">{skill.name}</span>
+                      <div className="w-24">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="bg-gray-600 h-2 rounded-full" 
+                               style={{ width: `${skill.level * 20}%` }}></div>
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-500">{skill.level * 20}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
           ))}
         </div>
       </section>

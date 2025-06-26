@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { ModernTemplate, MinimalTemplate } from './CoverLetterTemplates';
 import { generateCoverLetter } from '../../config/gemini';
-import ExportOptions from '../resume/ExportOptions';
+import CoverLetterExport from './CoverLetterExport';
 import { motion } from 'framer-motion';
 import { FaUser, FaBriefcase, FaBuilding, FaInfoCircle, FaMagic, FaDownload } from 'react-icons/fa';
 
@@ -254,11 +254,11 @@ export default function CoverLetterBuilder() {
                   )}
                 </motion.button>
 
-                <ExportOptions 
-                  data={coverLetterData}
-                  componentRef={componentRef}
-                  type="coverLetter"
-                />
+                <div className="mt-8">
+                  <CoverLetterExport 
+                    coverLetterData={coverLetterData}
+                  />
+                </div>
               </motion.div>
             </form>
           </div>
