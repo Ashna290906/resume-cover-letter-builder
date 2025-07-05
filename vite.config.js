@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
+  root: './',
+  base: '/',
   plugins: [
     react({
       babel: {
@@ -28,6 +30,22 @@ export default defineConfig({
     minify: 'terser',
     terserOptions: {
       compress: {
+        drop_console: true
+      }
+    },
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: true,
+    rollupOptions: {
+      input: {
+        main: './index.html'
+      }
+    }
+  },
+  server: {
+    port: 3000
+  }
+})
         drop_console: true
       }
     }
