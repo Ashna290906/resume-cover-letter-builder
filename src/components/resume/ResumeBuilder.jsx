@@ -4,7 +4,7 @@ import { ModernTemplate, MinimalTemplate } from './ResumeTemplates';
 import { generateResumeContent } from '../../config/gemini';
 import ExportOptions from './ExportOptions';
 import { motion } from 'framer-motion';
-import { FaUser, FaBriefcase, FaGraduationCap, FaTools, FaProjectDiagram, FaChevronDown } from 'react-icons/fa';
+import { FaUser, FaBriefcase, FaGraduationCap, FaTools, FaProjectDiagram, FaChevronDown, FaMagic } from 'react-icons/fa';
 
 const templates = {
   modern: ModernTemplate,
